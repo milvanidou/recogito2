@@ -1,6 +1,6 @@
 define([], function() {
 
-  var ZOOM_DURATION = 100;
+  var ZOOM_DURATION = 250;
 
   var DrawingCanvas = function(containerEl, olMap) {
 
@@ -44,7 +44,7 @@ define([], function() {
         },
 
         setEventForwardingEnabled = function(enabled) {
-
+          eventFwdEnabled = enabled;
         },
 
         show = function() {
@@ -59,6 +59,7 @@ define([], function() {
 
     this.hide = hide;
     this.show = show;
+    this.setEventForwardingEnabled = setEventForwardingEnabled;
   };
 
   return DrawingCanvas;
