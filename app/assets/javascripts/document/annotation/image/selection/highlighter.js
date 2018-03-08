@@ -1,16 +1,16 @@
 define([
   'document/annotation/common/selection/abstractHighlighter',
   'document/annotation/image/selection/layers/point/pointLayer',
-  'document/annotation/image/selection/layers/rect/rectLayer',
+  'document/annotation/image/selection/layers/rect2/rect2Layer',
   'document/annotation/image/selection/layers/tiltedbox/tiltedBoxLayer'
-], function(AbstractHighlighter, PointLayer, RectLayer, TiltedBoxLayer) {
+], function(AbstractHighlighter, PointLayer, Rect2Layer, TiltedBoxLayer) {
 
     var Highlighter = function(olMap) {
 
           /** The list of layer implementations **/
       var layers = {
             point : new PointLayer(olMap),
-            rect  : new RectLayer(olMap),
+            rect  : new Rect2Layer(olMap),
             tbox  : new TiltedBoxLayer(olMap)
           },
 

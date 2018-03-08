@@ -1,9 +1,10 @@
 define([
   'document/annotation/common/selection/abstractSelectionHandler',
+  'document/annotation/image/selection/drawingCanvas',
   'document/annotation/image/selection/layers/point/pointDrawingTool',
-  'document/annotation/image/selection/layers/rect/rectDrawingTool',
+  'document/annotation/image/selection/layers/rect2/rect2DrawingTool',
   'document/annotation/image/selection/layers/tiltedbox/tiltedBoxDrawingTool'
-], function(AbstractSelectionHandler, PointDrawingTool, RectDrawingTool, TiltedBoxDrawingTool) {
+], function(AbstractSelectionHandler, DrawingCanvas, PointDrawingTool, Rect2DrawingTool, TiltedBoxDrawingTool) {
 
     var SelectionHandler = function(containerEl, olMap, highlighter) {
 
@@ -15,10 +16,12 @@ define([
 
           currentDrawingTool = false,
 
+          drawingCanvas = new DrawingCanvas(containerEl, olMap),
+
           drawingTools = {
-            point : new PointDrawingTool(olMap),
-            rect  : new RectDrawingTool(olMap),
-            tbox  : new TiltedBoxDrawingTool(containerEl, olMap)
+            // point : new PointDrawingTool(olMap),
+            rect  : new Rect2DrawingTool(drawingCanvas, olMap),
+            // tbox  : new TiltedBoxDrawingTool(containerEl, olMap)
           },
 
           attachEventHandlers = function() {
@@ -129,7 +132,7 @@ define([
           onClick = function(e) {
             if (currentDrawingTool) {
               // Just forward to the drawing tool
-              currentDrawingTool.createNewSelection(e);
+              currentDrawingTool.start(e);
             } else {
               var previousSelection = currentSelection;
               currentSelection = highlighter.getAnnotationAt(e);
