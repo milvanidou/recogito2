@@ -6,25 +6,81 @@ define([
 ], function(Config, Geom2D, Layer, Style) {
 
       /** Constants **/
-  var MIN_DRAG_TIME = 300;   // Minimum duration of an annotation drag (milliseconds)
+  var TWO_PI = 2 * Math.PI;
 
   var Rect2DrawingTool = function(canvas, olMap) {
 
     var self = this,
 
-        /// ctx = canvas.getContext('2d'),
+        mouseX, mouseY,
 
-        /** Mouse state **/
-        lastClickTime,
-        isMouseDown = false,
+        drawing = false,
 
-        attachMouseHandlers = function() {
-          /* Handlers on the drawing canvas
-          var c = jQuery(canvas);
-          c.mousedown(onMouseDown);
-          c.mousemove(onMouseMove);
-          c.mouseup(onMouseUp);
-          */
+        // Option[{ top, right, bottom, left }]
+        currentRect = false,
+
+        onMouseMove = function(e) {
+          mouseX = e.offsetX;
+          mouseY = e.offsetY;
+
+          if (drawing) {
+            currentRect.right = e.offsetX;
+            currentRect.bottom = e.offsetY;
+          }
+        },
+
+        onMouseClick = function(e) {
+          if (drawing) {
+            drawing = false; // Stop drawing
+          } else if (currentRect) {
+            currentRect = false; // Reset
+          } else { // Start drawing
+            currentRect = { top: e.offsetY, left: e.offsetX };
+            drawing = true;
+          }
+        },
+
+        drawDot = function(ctx, x, y) {
+          ctx.beginPath();
+          ctx.lineWidth = 4;
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+          ctx.strokeStyle = 'rgba(128, 82, 32, 0.65)';
+          ctx.arc(x, y, 7, 0, TWO_PI);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.shadowBlur = 0;
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = '#fff';
+          ctx.fillStyle = 'orange';
+          ctx.arc(x, y, 7, 0, TWO_PI);
+          ctx.fill();
+          ctx.stroke();
+        },
+
+        drawCurrentRect = function(ctx) {
+          var w = currentRect.right - currentRect.left,
+              h = currentRect.bottom - currentRect.top;
+
+          ctx.beginPath();
+          ctx.shadowBlur = 0;
+          ctx.lineWidth = 2.5;
+          ctx.strokeStyle = 'orange';
+          ctx.rect(currentRect.left, currentRect.top, w, h);
+          ctx.stroke();
+
+          drawDot(ctx, currentRect.left, currentRect.top);
+          drawDot(ctx, currentRect.right, currentRect.bottom);
+        },
+
+        render = function() {
+          canvas.ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          if (currentRect) drawCurrentRect(canvas.ctx);
+          if (!drawing) drawDot(canvas.ctx, mouseX, mouseY);
+
+          requestAnimationFrame(render);
         },
 
         updateSize = function() {
@@ -37,12 +93,9 @@ define([
           */
         },
 
-        clearCanvas = function() {
-          // ctx.clearRect(0, 0, canvas.width, canvas.height);
-        },
-
-        startPainting = function(e) {
+        startPainting = function() {
           canvas.show();
+          render();
           /*
           painting = true;
           anchorX = (e.offsetX) ? e.offsetX : e.originalEvent.layerX;
@@ -54,33 +107,25 @@ define([
         },
 
         clearSelection = function() {
-          clearCanvas();
+           ctx.clearRect(0, 0, canvas.width, canvas.height);
         },
 
         setEnabled = function(enabled) {
-          if (enabled)
-            canvas.show();
-          else
-            canvas.hide();
-        },
-
-        onMouseDown = function(jqEvt) {
-
-        },
-
-        onMouseMove = function(jqEvt) {
-
-        },
-
-        onMouseUp = function(e) {
-
+          if (enabled) startPainting();
+          else canvas.hide();
         };
 
     updateSize();
-    attachMouseHandlers();
+
+    // TODO needs to register & deregister in .setEnabled!
+    canvas.on('mousemove', onMouseMove);
+    canvas.on('click', onMouseClick);
 
     // Reset canvas on window resize
     jQuery(window).on('resize', updateSize);
+
+
+    this.drawCursor = drawDot;
 
     this.clearSelection = clearSelection;
     this.setEnabled = setEnabled;
